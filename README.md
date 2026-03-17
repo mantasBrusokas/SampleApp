@@ -71,8 +71,13 @@ Verify the app runs correctly on a simulator before proceeding:
 ```bash
 npx react-native run-ios
 ```
+### Step 3 – Install Detox
+ 
+```bash
+npm install detox --save-dev
+```
 
-### Step 3 – Add the e2e tests
+### Step 4 – Add the e2e tests
 
 Clone this repository's `e2e` folder into the app project:
 
@@ -84,7 +89,7 @@ cp e2e-tmp/.detoxrc.js ./.detoxrc.js
 rm -rf e2e-tmp
 ```
 
-### Step 4 – Build and run tests
+### Step 5 – Build and run tests
 
 ```bash
 npx detox build --configuration ios.sim.debug
