@@ -19,10 +19,13 @@ Detox is purpose-built for React Native, runs without a WebDriver server (faster
 ## Project Structure
 
 ```
-e2e/
-├── app.test.js          # Main test suite
-└── screens/
-    └── AppScreen.js     # Page Object – selectors, actions, assertions
+/SampleApp/
+├── e2e/             
+│   ├── app.test.js       # Main test suite
+│   └── screens/        
+│       └── AppScreen.js  # Page Object – selectors, actions, assertions
+└── .detoxrc.js
+
 ```
 
 ---
@@ -43,27 +46,54 @@ brew tap wix/brew && brew install applesimutils
 
 ---
 
-## Setup & Run (iOS)
+## Setup & Run (iOS – verified ✅)
+
+### Step 1 – Set up React Native environment
+
+Make sure your machine is ready for React Native development:
+👉 https://reactnative.dev/docs/set-up-your-environment
+
+### Step 2 – Clone and run the app
+
+The tests run against this app: https://github.com/karolisov/SampleApp
 
 ```bash
-# 1. Clone
-git clone https://github.com/mantasBrusokas/SampleApp.git
+git clone https://github.com/karolisov/SampleApp.git
 cd SampleApp
-
-# 2. Install
 npm install
 cd ios && pod install && cd ..
 
-# 3. Build
-npx detox build --configuration ios.sim.debug
+# Start Metro bundler (keep this terminal open)
+npx react-native start
+```
 
-# 4. Test
+Verify the app runs correctly on a simulator before proceeding:
+```bash
+npx react-native run-ios
+```
+
+### Step 3 – Add the e2e tests
+
+Clone this repository's `e2e` folder into the app project:
+
+```bash
+# Inside SampleApp root directory
+git clone https://github.com/mantasBrusokas/SampleApp.git e2e-tmp
+cp -r e2e-tmp/e2e ./e2e
+cp e2e-tmp/.detoxrc.js ./.detoxrc.js
+rm -rf e2e-tmp
+```
+
+### Step 4 – Build and run tests
+
+```bash
+npx detox build --configuration ios.sim.debug
 npx detox test --configuration ios.sim.debug
 ```
 
 ---
 
-## Android (not verified)
+## Android (not verified ⚠️)
 
 Android setup has not been verified. The configuration is included for reference based on Detox documentation.
 
