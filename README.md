@@ -1,9 +1,18 @@
 # SampleApp – E2E Tests (Detox)
 
+---
 
-## Framework Choice – Why Detox?
+## Why Detox?
 
-Detox was chosen because it is purpose-built for React Native, provides fast and reliable test execution, integrates naturally with Jest, and supports patterns like Page Object – making it the most suitable framework for this task.
+| | Detox | Appium | Maestro | WebdriverIO |
+|---|---|---|---|---|
+| React Native support | ✅ Native | ⚠️ Generic | ✅ Good | ⚠️ Generic |
+| Speed | ✅ Fast | ❌ Slow | ✅ Fast | ❌ Slow |
+| Flakiness | ✅ Low | ❌ High | ✅ Low | ❌ High |
+| JS/Jest integration | ✅ Built-in | ⚠️ Extra setup | ❌ YAML only | ⚠️ Extra setup |
+| Setup complexity | ⚠️ Medium | ❌ High | ✅ Low | ❌ High |
+
+Detox is purpose-built for React Native, runs without a WebDriver server (faster than Appium), auto-synchronizes with the JS thread (no manual `sleep` calls), and uses Jest natively – the same stack as the app itself.
 
 ---
 
@@ -20,99 +29,57 @@ e2e/
 
 ## Prerequisites
 
-Make sure you have the following installed before running the tests:
-
-| Tool | Version | Notes |
-|---|---|---|
-| Node.js | >= 18 | [nodejs.org](https://nodejs.org) |
-| npm | >= 9 | Comes with Node.js |
-| Xcode | >= 15 | macOS only – required for iOS simulator |
-| Xcode CLI Tools | latest | `xcode-select --install` |
-| applesimutils | latest | Required by Detox for iOS |
-| React Native CLI | latest | `npm install -g react-native-cli` |
-
-Install `applesimutils`:
-```bash
-brew tap wix/brew
-brew install applesimutils
-```
-
-Install Detox CLI globally:
-```bash
-npm install -g detox-cli
-```
-
----
-
-## Setup
-
-### 1. Clone the repository
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Install iOS pods
-
-```bash
-cd ios && pod install && cd ..
-```
-
----
-
-## Building the App for Tests
-
-Before running tests, you need to build the app in test configuration.
-
-### iOS (Simulator)
-
-```bash
-detox build --configuration ios.sim.debug
-```
-
-### Android (Emulator)
-
-```bash
-detox build --configuration android.emu.debug
-```
-
----
-
-## Running the Tests
-
-### iOS
-
-```bash
-detox test --configuration ios.sim.debug
-```
-
-### Android
-
-```bash
-detox test --configuration android.emu.debug
-```
----
-
-## Test Coverage
-
-| Test Group | What is tested |
+| Tool | Version |
 |---|---|
-| **Initial state** | Default header text, counter starts at 1, subheader hidden, Button 1 default color |
-| **Button 1** | Color changes on tap, changes on each tap |
-| **Button 2** | Counter increments by 1, increments correctly across multiple taps |
-| **Button 3** | Header text changes, non-empty result, unique value each tap |
-| **Button 4** | Subheader appears/disappears on toggle, correct text, multiple cycles |
-| **Button 5** | Resets header, counter, subheader, Button 1 color, all state simultaneously |
+| Node.js | >= 18 |
+| Xcode | >= 15 |
+| applesimutils | latest |
+
+```bash
+brew tap wix/brew && brew install applesimutils
+```
+
+> **Note:** No global Detox CLI install needed – all commands use `npx detox`.
 
 ---
 
-## Detox Configuration
+## Setup & Run (iOS)
 
-Detox configuration is defined in `.detoxrc.js`
+```bash
+# 1. Clone
+git clone https://github.com/mantasBrusokas/SampleApp.git
+cd SampleApp
 
-Example `.detoxrc.js`:
+# 2. Install
+npm install
+cd ios && pod install && cd ..
+
+# 3. Build
+npx detox build --configuration ios.sim.debug
+
+# 4. Test
+npx detox test --configuration ios.sim.debug
+```
+
+---
+
+## Android (not verified)
+
+Android setup has not been verified. The configuration is included for reference based on Detox documentation.
+
+Additional prerequisites:
+- Android Studio
+- Android SDK
+- A running emulator (AVD: `Pixel_7_API_34`)
+
+```bash
+npx detox build --configuration android.emu.debug
+npx detox test --configuration android.emu.debug
+```
+
+---
+
+## Detox Configuration (`.detoxrc.js`)
 
 ```js
 /** @type {Detox.DetoxConfig} */
@@ -120,60 +87,90 @@ module.exports = {
   testRunner: {
     args: {
       '$0': 'jest',
-      config: 'e2e/jest.config.js'
+      config: 'e2e/jest.config.js',
     },
     jest: {
-      setupTimeout: 120000
-    }
+      setupTimeout: 120000,
+    },
   },
   apps: {
     'ios.debug': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/SampleApp.app',
-      build: 'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build'
+      build: 'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
-    'ios.release': {
-      type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/SampleApp.app',
-      build: 'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Release -sdk iphonesimulator -derivedDataPath ios/build'
-    },
+    // Android – not verified, included for reference
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
       build: 'cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug',
-      reversePorts: [
-        8081
-      ]
+      reversePorts: [8081],
     },
-    'android.release': {
-      type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/release/app-release.apk',
-      build: 'cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release'
-    }
   },
   devices: {
     simulator: {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 17 Pro'
-      }
-    }
+        type: 'iPhone 17 Pro',
+      },
+    },
+    // Android – not verified, included for reference
+    emulator: {
+      type: 'android.emulator',
+      device: {
+        avdName: 'Pixel_7_API_34',
+      },
+    },
   },
   configurations: {
     'ios.sim.debug': {
       device: 'simulator',
-      app: 'ios.debug'
+      app: 'ios.debug',
     },
-    'ios.sim.release': {
-      device: 'simulator',
-      app: 'ios.release'
-    }
-  }
+    // Android – not verified, included for reference
+    'android.emu.debug': {
+      device: 'emulator',
+      app: 'android.debug',
+    },
+  },
 };
-
 ```
 
 ---
 
+## Test Coverage
+
+| Group | What is tested |
+|---|---|
+| Initial state | Header, counter, subheader, Button 1 color |
+| Button 1 | Color changes on tap |
+| Button 2 | Counter increments by 1 and across multiple taps |
+| Button 3 | Header text changes, non-empty, unique each tap |
+| Button 4 | Subheader toggle, correct text, multiple cycles |
+| Button 5 | Resets all state simultaneously |
+
+---
+
+## Troubleshooting
+
+```bash
+# No devices found
+xcrun simctl boot "iPhone 17 Pro"
+
+# Metro not running
+npx react-native start
+
+# Pod issues
+cd ios && pod repo update && pod install
+
+# Build cache
+npx detox clean-framework-cache && npx detox build-framework-cache
+```
+
+---
+
+## Tech Stack
+
+- [React Native](https://reactnative.dev/) – mobile framework
 - [Detox](https://wix.github.io/Detox/) – E2E testing framework
 - [Jest](https://jestjs.io/) – test runner
